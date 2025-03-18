@@ -1,40 +1,51 @@
 const mongodb = require("../data/database");
 const ObjectId = require("mongodb").ObjectId;
 
-const getAll = (req, res) => {
+const getAll = async (req, res) => {
   //#swagger.tags['Pokemon']
-  mongodb
-    .getDatabase()
-    .db()
-    .collection("pokemon")
-    .find()
-    .toArray((err, pokemon) => {
-      if (err) {
-        res.status(400).json({ message: err });
-      }
-      res.setHeader("Content-Type", "application/json");
-      res.status(200).json(pokemon);
-    });
+  try {
+    const pokemon = await mongodb
+      .getDatabase()
+      .db()
+      .collection("pokemon")
+      .find()
+      .toArray();
+
+    res.setHeader("Content-Type", "application/json");
+    res.status(200).json(pokemon);
+  } catch (err) {
+    console.error("Error fetching pokemon", err);
+    res.status(400).json({ message: err.message });
+  }
 };
 
-const getSingle = (req, res) => {
+const getSingle = async (req, res) => {
   //#swagger.tags['Pokemon']
-  if (!ObjectId.isValid(req.params.id)) {
-    res.status(400).json("Must use a valid pokemon id to find the pokemon.");
+  try {
+    if (!ObjectId.isValid(req.params.id)) {
+      return res
+        .status(400)
+        .json("Must use a valid pokemon id to find the pokemon.");
+    }
+
+    const pokemonId = new ObjectId(req.params.id);
+    const result = await mongodb
+      .getDatabase()
+      .db()
+      .collection("pokemon")
+      .find({ _id: pokemonId })
+      .toArray();
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "Pokemon not found" });
+    }
+
+    res.setHeader("Content-Type", "application/json");
+    res.status(200).json(result[0]);
+  } catch (err) {
+    console.error("Error in getSingle pokemon:", err);
+    res.status(400).json({ message: err.message });
   }
-  const pokemonId = new ObjectId(req.params.id);
-  mongodb
-    .getDatabase()
-    .db()
-    .collection("pokemon")
-    .find({ _id: pokemonId })
-    .toArray((err, result) => {
-      if (err) {
-        res.status(400).json({ message: err });
-      }
-      res.setHeader("Content-Type", "application/json");
-      res.status(200).json(result[0]);
-    });
 };
 
 const createPokemon = async (req, res) => {
