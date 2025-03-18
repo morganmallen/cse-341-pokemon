@@ -5,7 +5,7 @@
     "description": "Pokemon Api",
     "version": "1.0.0"
   },
-  "host": "https://cse-341-pokemon.onrender.com",
+  "host": "cse-341-pokemon.onrender.com",
   "basePath": "/",
   "schemes": ["https"],
   "paths": {
